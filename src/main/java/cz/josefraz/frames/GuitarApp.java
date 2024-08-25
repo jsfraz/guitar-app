@@ -37,32 +37,22 @@ public class GuitarApp extends JFrame {
 
         // Theme buttons
         JMenuItem darkThemeItem = new JMenuItem("Dark", darkIcon);
-        darkThemeItem.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    UIManager.setLookAndFeel(new FlatDarkLaf());
-                    SwingUtilities.updateComponentTreeUI(frame);
-                } catch (UnsupportedLookAndFeelException ex) {
-                    ex.printStackTrace();
-                }
+        darkThemeItem.addActionListener(e -> {
+            try {
+                UIManager.setLookAndFeel(new FlatDarkLaf());
+                SwingUtilities.updateComponentTreeUI(frame);
+            } catch (UnsupportedLookAndFeelException ex) {
+                ex.printStackTrace();
             }
-            
         });
         JMenuItem lightThemeItem = new JMenuItem("Light", lightIcon);
-        lightThemeItem.addActionListener(new ActionListener() {
-            
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    UIManager.setLookAndFeel(new FlatLightLaf());
-                    SwingUtilities.updateComponentTreeUI(frame);
-                } catch (UnsupportedLookAndFeelException ex) {
-                    ex.printStackTrace();
-                }
+        lightThemeItem.addActionListener(e -> {
+            try {
+                UIManager.setLookAndFeel(new FlatLightLaf());
+                SwingUtilities.updateComponentTreeUI(frame);
+            } catch (UnsupportedLookAndFeelException ex) {
+                ex.printStackTrace();
             }
-
         });
 
         themeMenu.add(darkThemeItem);
