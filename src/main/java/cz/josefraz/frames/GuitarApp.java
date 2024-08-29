@@ -64,10 +64,10 @@ public class GuitarApp extends JFrame {
         setJMenuBar(menuBar);
 
         // Create the left panel
-        JPanel leftPanel = new JPanel();
-        leftPanel.setBorder(BorderFactory.createLineBorder(borderColor));
-        leftPanel.setMinimumSize(new Dimension(0, 0)); // Minimum width of 0 for full hiding
-
+        JPanel lPanel = new JPanel();
+        lPanel.setBorder(BorderFactory.createLineBorder(borderColor));
+        lPanel.setMinimumSize(new Dimension(0, 0)); // Minimum width of 0 for full hiding
+        
         // Create the tabbed pane
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setBorder(BorderFactory.createLineBorder(borderColor));
@@ -79,14 +79,14 @@ public class GuitarApp extends JFrame {
         tabbedPane.addTab("Preview", previewPanel);
 
         // Create a SplitPane to divide the left panel and the tabbed pane
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, tabbedPane);
-        splitPane.setOneTouchExpandable(true); // Allows full hiding and showing of the left panel
+        JSplitPane hSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, lPanel, tabbedPane);
+        hSplitPane.setOneTouchExpandable(true); // Allows full hiding and showing of the left panel
         // TODO auto location
-        splitPane.setDividerLocation(200); // Initial width of the left panel
-        splitPane.setResizeWeight(0); // Left panel resizes while the right panel remains the same
+        hSplitPane.setDividerLocation(200); // Initial width of the left panel
+        hSplitPane.setResizeWeight(0); // Left panel resizes while the right panel remains the same
 
         // Add the main panel to the window
-        add(splitPane, BorderLayout.CENTER);
+        add(hSplitPane, BorderLayout.CENTER);
 
         // Status panel https://stackoverflow.com/a/3035893/19371130
         JPanel statusPanel = new JPanel();
