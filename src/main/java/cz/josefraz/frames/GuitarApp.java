@@ -6,8 +6,6 @@ import com.formdev.flatlaf.FlatLightLaf;
 import javax.swing.*;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class GuitarApp extends JFrame {
 
@@ -16,6 +14,10 @@ public class GuitarApp extends JFrame {
         setTitle("G.U.I.T.A.R");
         JFrame frame = this;
         Color borderColor = new Color(97, 99, 101);
+
+        // Icon
+        ImageIcon icon = new ImageIcon(getClass().getResource("/guitar.png"));
+        this.setIconImage(icon.getImage());
 
         // Set the base layout to BorderLayout
         setLayout(new BorderLayout());
