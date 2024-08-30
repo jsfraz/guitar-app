@@ -14,10 +14,17 @@
     </properties>
 
     <dependencies>
+        <!-- Swing themes -->
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf</artifactId>
             <version>3.5.1</version>
+        </dependency>
+        <!-- Serial -->
+        <dependency>
+            <groupId>com.fazecast</groupId>
+            <artifactId>jSerialComm</artifactId>
+            <version>[2.0.0,3.0.0)</version>
         </dependency>
     </dependencies>
 

@@ -32,26 +32,49 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 
+import com.fazecast.jSerialComm.SerialPort;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 
+import cz.josefraz.threads.ReadDataThread;
+import cz.josefraz.utils.Command;
 import cz.josefraz.utils.CustomOutputStream;
+import cz.josefraz.utils.Guitar;
+import cz.josefraz.utils.Singleton;
 
 public class GuitarApp extends JFrame {
-
     // TODO auto location
+    // Width of left part og SplitPanel
     private int leftHSplitPanelDividerWidth = 200;
     // TODO auto location
     // Height of bottom part of v SplitPanel
-    private int bottomVSPlitPanelHeight = 220;
+    private int bottomVSplitPanelHeight = 220;
     // For checking if vSPlitPanel divider is being dragged
     private boolean isVSplitPanelDividerDragged = false;
 
+    // Connect to device item
+    private JMenuItem connectDeviceItem;
+    // Disonnect device item
+    private JMenuItem disconnectDeviceItem;
+    // Commands
+    JMenu commandMenu;
+    // Device output
     private JTextArea deviceOutputTextArea;
+    // Program logs
     private JTextArea programLogTextArea;
+    // Status panel
+    private JPanel statusPanel;
+    // Status panel label
+    private JLabel statusLabel;
+
+    // Thread for reading data form serial port
+    private ReadDataThread readDataThread;
+
+    private final Color disconnectedStatusPanelColor = new Color(240, 167, 50);
+    private final String disconnectedStatusPanelMsg = "Not connected. Go to Device > Connect";
 
     public GuitarApp() {
-        System.out.println("Loading main window.");
+        System.out.println("Loading main window");
 
         // Set the title of the window
         setTitle("G.U.I.T.A.R");
@@ -75,8 +98,27 @@ public class GuitarApp extends JFrame {
         fileMenu.add(newMenuItem);
         menuBar.add(fileMenu);
         JMenu deviceMenu = new JMenu("Device");
-        JMenuItem connectDeviceItem = new JMenuItem("Connect");
+        connectDeviceItem = new JMenuItem("Connect");
+        connectDeviceItem.addActionListener(e -> {
+            setEnabled(false);
+            new SelectPortDialog(this);
+        });
         deviceMenu.add(connectDeviceItem);
+        disconnectDeviceItem = new JMenuItem("Disconnect");
+        disconnectDeviceItem.addActionListener(e -> {
+            readDataThread.terminate();
+            Singleton.GetInstance().getSerialPort().closePort();
+            Singleton.GetInstance().setSerialPort(null);
+            System.out.println("Closed serial port");
+            deviceOutputTextArea.append("---- Closed serial port ----\n");
+            statusPanel.setBackground(disconnectedStatusPanelColor);
+            statusLabel.setText(disconnectedStatusPanelMsg);
+            connectDeviceItem.setEnabled(true);
+            disconnectDeviceItem.setEnabled(false);
+            commandMenu.setEnabled(false);
+        });
+        disconnectDeviceItem.setEnabled(false);
+        deviceMenu.add(disconnectDeviceItem);
         menuBar.add(deviceMenu);
         JMenu themeMenu = new JMenu("Theme");
         // TODO icons
@@ -87,7 +129,7 @@ public class GuitarApp extends JFrame {
             try {
                 UIManager.setLookAndFeel(new FlatDarkLaf());
                 SwingUtilities.updateComponentTreeUI(frame);
-                System.out.println("Dark theme set.");
+                System.out.println("Dark theme set");
             } catch (UnsupportedLookAndFeelException ex) {
                 ex.printStackTrace();
             }
@@ -97,7 +139,7 @@ public class GuitarApp extends JFrame {
             try {
                 UIManager.setLookAndFeel(new FlatLightLaf());
                 SwingUtilities.updateComponentTreeUI(frame);
-                System.out.println("Light theme set.");
+                System.out.println("Light theme set");
             } catch (UnsupportedLookAndFeelException ex) {
                 ex.printStackTrace();
             }
@@ -117,6 +159,21 @@ public class GuitarApp extends JFrame {
         });
         outputMenu.add(programLogClearItem);
         menuBar.add(outputMenu);
+        commandMenu = new JMenu("Command");
+        commandMenu.setEnabled(false);
+        JMenuItem helloCommandItem = new JMenuItem("Hello");
+        helloCommandItem.addActionListener(e -> {
+            // Send HELLO command
+            Guitar.command(Command.HELLO);
+        });
+        commandMenu.add(helloCommandItem);
+        JMenuItem systemInfoCommandItem = new JMenuItem("System info");
+        systemInfoCommandItem.addActionListener(e -> {
+            // Send HELLO command
+            Guitar.command(Command.SYSTEMINFO);
+        });
+        commandMenu.add(systemInfoCommandItem);
+        menuBar.add(commandMenu);
         setJMenuBar(menuBar);
 
         // Create the left panel
@@ -133,6 +190,7 @@ public class GuitarApp extends JFrame {
         mainTabbedPane.addTab("Editor", editorPanel);
         JPanel previewPanel = new JPanel();
         mainTabbedPane.addTab("Preview", previewPanel);
+        // TODO auto select tab
 
         // Create bottom tabbed pane
         JTabbedPane bottomTabbedPane = new JTabbedPane();
@@ -149,10 +207,11 @@ public class GuitarApp extends JFrame {
         programLogTextArea = new JTextArea();
         programLogTextArea.setEditable(false);
         bottomTabbedPane.addTab("Program logs", new JScrollPane(programLogTextArea));
+        // TODO auto select tab
 
         // Create a SplitPane to divide main parta nd bottom panel
         JSplitPane vSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, mainTabbedPane, bottomTabbedPane);
-        vSplitPane.setDividerLocation(getHeight() - bottomVSPlitPanelHeight);
+        vSplitPane.setDividerLocation(getHeight() - bottomVSplitPanelHeight);
         vSplitPane.setResizeWeight(0);
         // Divider event listener
         BasicSplitPaneUI vSPlitPaneUi = (BasicSplitPaneUI) vSplitPane.getUI();
@@ -187,7 +246,7 @@ public class GuitarApp extends JFrame {
             public void propertyChange(PropertyChangeEvent evt) {
                 if (isVSplitPanelDividerDragged) {
                     int newValue = (int) evt.getNewValue();
-                    bottomVSPlitPanelHeight = (newValue - frame.getHeight()) * -1;
+                    bottomVSplitPanelHeight = (newValue - frame.getHeight()) * -1;
                 }
             }
         });
@@ -197,7 +256,7 @@ public class GuitarApp extends JFrame {
 
             @Override
             public void componentResized(ComponentEvent e) {
-                vSplitPane.setDividerLocation(getHeight() - bottomVSPlitPanelHeight);
+                vSplitPane.setDividerLocation(getHeight() - bottomVSplitPanelHeight);
             }
 
             @Override
@@ -230,12 +289,12 @@ public class GuitarApp extends JFrame {
         add(hSplitPane, BorderLayout.CENTER);
 
         // Status panel https://stackoverflow.com/a/3035893/19371130
-        JPanel statusPanel = new JPanel();
+        statusPanel = new JPanel();
         statusPanel.setBorder(new EmptyBorder(0, 5, 0, 0));
-        statusPanel.setBackground(Color.orange);
+        statusPanel.setBackground(disconnectedStatusPanelColor);
         statusPanel.setPreferredSize(new Dimension(getWidth(), 24));
         statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.X_AXIS));
-        JLabel statusLabel = new JLabel("Not connected. Go to Device > Connect");
+        statusLabel = new JLabel(disconnectedStatusPanelMsg);
         statusLabel.setForeground(Color.white);
         statusLabel.setFont(statusLabel.getFont().deriveFont(Font.BOLD));
         statusLabel.setHorizontalAlignment(SwingConstants.LEFT);
@@ -249,7 +308,38 @@ public class GuitarApp extends JFrame {
 
         // Display the window
         setVisible(true);
-        System.out.println("Main window loaded.");
+        System.out.println("Main window loaded");
         System.out.println(String.format("%s %s, %s, Java %s", System.getProperty("os.name"), System.getProperty("os.version"), System.getProperty("os.arch"), System.getProperty("java.version")));
+    }
+    
+    // Opens serial port
+    public void openSerialPort(SerialPort serialPort) {
+        // Serial port settings
+        serialPort.setBaudRate(115200);
+        serialPort.setNumDataBits(8);
+        serialPort.setNumStopBits(1);
+        serialPort.setParity(0);
+        Singleton.GetInstance().setSerialPort(serialPort);
+
+        // Open
+        boolean opened = Singleton.GetInstance().getSerialPort().openPort();
+        if (opened) {
+            deviceOutputTextArea.append("---- Opened serial port ----\n");
+            this.connectDeviceItem.setEnabled(false);
+            this.disconnectDeviceItem.setEnabled(true);
+            this.commandMenu.setEnabled(true);
+            System.out.println(String.format("Opened serial port %s", Singleton.GetInstance().getSerialPort().getDescriptivePortName()));
+
+            // Change status panel
+            statusPanel.setBackground(new Color(76, 135, 200));
+            statusLabel.setText("Connected!");
+
+            // Start thread for reading output
+            readDataThread = new ReadDataThread(deviceOutputTextArea);
+            readDataThread.start();
+
+            // Sends SYSTEMINFO command
+            Guitar.command(Command.SYSTEMINFO);
+        }
     }
 }
