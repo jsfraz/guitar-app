@@ -10,6 +10,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.PrintStream;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -20,8 +21,10 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -32,8 +35,11 @@ import javax.swing.plaf.basic.BasicSplitPaneUI;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 
+import cz.josefraz.utils.CustomOutputStream;
+
 public class GuitarApp extends JFrame {
 
+    // TODO auto location
     private int leftHSplitPanelDividerWidth = 200;
     // TODO auto location
     // Height of bottom part of v SplitPanel
@@ -41,7 +47,12 @@ public class GuitarApp extends JFrame {
     // For checking if vSPlitPanel divider is being dragged
     private boolean isVSplitPanelDividerDragged = false;
 
+    private JTextArea deviceOutputTextArea;
+    private JTextArea programLogTextArea;
+
     public GuitarApp() {
+        System.out.println("Loading main window.");
+
         // Set the title of the window
         setTitle("G.U.I.T.A.R");
         JFrame frame = this;
@@ -64,8 +75,8 @@ public class GuitarApp extends JFrame {
         fileMenu.add(newMenuItem);
         menuBar.add(fileMenu);
         JMenu deviceMenu = new JMenu("Device");
-        JMenuItem connectDevice = new JMenuItem("Connect");
-        deviceMenu.add(connectDevice);
+        JMenuItem connectDeviceItem = new JMenuItem("Connect");
+        deviceMenu.add(connectDeviceItem);
         menuBar.add(deviceMenu);
         JMenu themeMenu = new JMenu("Theme");
         // TODO icons
@@ -76,6 +87,7 @@ public class GuitarApp extends JFrame {
             try {
                 UIManager.setLookAndFeel(new FlatDarkLaf());
                 SwingUtilities.updateComponentTreeUI(frame);
+                System.out.println("Dark theme set.");
             } catch (UnsupportedLookAndFeelException ex) {
                 ex.printStackTrace();
             }
@@ -85,6 +97,7 @@ public class GuitarApp extends JFrame {
             try {
                 UIManager.setLookAndFeel(new FlatLightLaf());
                 SwingUtilities.updateComponentTreeUI(frame);
+                System.out.println("Light theme set.");
             } catch (UnsupportedLookAndFeelException ex) {
                 ex.printStackTrace();
             }
@@ -92,6 +105,18 @@ public class GuitarApp extends JFrame {
         themeMenu.add(darkThemeItem);
         themeMenu.add(lightThemeItem);
         menuBar.add(themeMenu);
+        JMenu outputMenu = new JMenu("Output");
+        JMenuItem deviceOutputClearItem = new JMenuItem("Clear device output");
+        deviceOutputClearItem.addActionListener(e -> {
+            deviceOutputTextArea.setText(null);
+        });
+        outputMenu.add(deviceOutputClearItem);
+        JMenuItem programLogClearItem = new JMenuItem("Clear program logs");
+        programLogClearItem.addActionListener(e -> {
+            programLogTextArea.setText(null);
+        });
+        outputMenu.add(programLogClearItem);
+        menuBar.add(outputMenu);
         setJMenuBar(menuBar);
 
         // Create the left panel
@@ -116,8 +141,14 @@ public class GuitarApp extends JFrame {
         // Add tabs
         JPanel problemPanel = new JPanel();
         bottomTabbedPane.addTab("Problems", problemPanel);
-        JPanel outputPanel = new JPanel();
-        bottomTabbedPane.addTab("Output", outputPanel);
+        // Device output
+        deviceOutputTextArea = new JTextArea();
+        deviceOutputTextArea.setEditable(false);
+        bottomTabbedPane.addTab("Device output", new JScrollPane(deviceOutputTextArea));
+        // Logs
+        programLogTextArea = new JTextArea();
+        programLogTextArea.setEditable(false);
+        bottomTabbedPane.addTab("Program logs", new JScrollPane(programLogTextArea));
 
         // Create a SplitPane to divide main parta nd bottom panel
         JSplitPane vSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, mainTabbedPane, bottomTabbedPane);
@@ -192,7 +223,6 @@ public class GuitarApp extends JFrame {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
                 leftHSplitPanelDividerWidth = (int) evt.getNewValue();
-                System.out.println(leftHSplitPanelDividerWidth);
             }
         });
 
@@ -212,7 +242,14 @@ public class GuitarApp extends JFrame {
         statusPanel.add(statusLabel);
         add(statusPanel, BorderLayout.SOUTH);
 
+        // Initialize custom output stream
+        PrintStream printStream = new PrintStream(new CustomOutputStream(programLogTextArea));
+        System.setOut(printStream);
+        System.setErr(printStream);
+
         // Display the window
         setVisible(true);
+        System.out.println("Main window loaded.");
+        System.out.println(String.format("%s %s, %s, Java %s", System.getProperty("os.name"), System.getProperty("os.version"), System.getProperty("os.arch"), System.getProperty("java.version")));
     }
 }
