@@ -12,6 +12,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
@@ -26,13 +27,22 @@ public class SelectPortDialog extends JFrame {
         contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
 
         // Port combo box
+        JPanel portPanel = new JPanel();
+        portPanel.setLayout(new BoxLayout(portPanel, BoxLayout.X_AXIS));
+        portPanel.add(new JLabel("Serial port:"));
+        portPanel.add(Box.createRigidArea(new Dimension(10, 0))); // Mezera mezi textem a výběrem
         SerialPort[] serialPorts = SerialPort.getCommPorts();
         DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
         for (SerialPort port : serialPorts) {
             model.addElement(port.getDescriptivePortName());
         }
         JComboBox<String> serialPortComboBox = new JComboBox<String>(model);
-        contentPane.add(serialPortComboBox);
+        serialPortComboBox.setPreferredSize(new Dimension(180, 30));
+        serialPortComboBox.setMaximumSize(serialPortComboBox.getPreferredSize());
+        portPanel.add(serialPortComboBox);
+        contentPane.add(portPanel);
+        // Vertical space
+        contentPane.add(Box.createVerticalStrut(10));
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
@@ -71,6 +81,9 @@ public class SelectPortDialog extends JFrame {
 
         contentPane.add(buttonPanelContainer);
 
+        // Vertical space
+        contentPane.add(Box.createVerticalStrut(5));
+
         // Enable main window when dialog is closed
         addWindowListener(new WindowAdapter() {
             @Override
@@ -79,9 +92,9 @@ public class SelectPortDialog extends JFrame {
                 dispose();
             }
         });
-        
+
         setContentPane(contentPane);
-        setSize(300, 180);
+        setSize(300, 110);
         setResizable(false);
         setLocationRelativeTo(mainWindow);
         setVisible(true);
