@@ -1,14 +1,45 @@
 package cz.josefraz.frames;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.BasicSplitPaneUI;
+
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-
-import java.awt.*;
-
 public class GuitarApp extends JFrame {
+
+    private int leftHSplitPanelDividerWidth = 200;
+    // TODO auto location
+    // Height of bottom part of v SplitPanel
+    private int bottomVSPlitPanelHeight = 220;
+    // For checking if vSPlitPanel divider is being dragged
+    private boolean isVSplitPanelDividerDragged = false;
 
     public GuitarApp() {
         // Set the title of the window
@@ -67,23 +98,103 @@ public class GuitarApp extends JFrame {
         JPanel lPanel = new JPanel();
         lPanel.setBorder(BorderFactory.createLineBorder(borderColor));
         lPanel.setMinimumSize(new Dimension(0, 0)); // Minimum width of 0 for full hiding
-        
-        // Create the tabbed pane
-        JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.setBorder(BorderFactory.createLineBorder(borderColor));
+
+        // Create main tabbed pane
+        JTabbedPane mainTabbedPane = new JTabbedPane();
+        mainTabbedPane.setBorder(BorderFactory.createLineBorder(borderColor));
 
         // Add tabs
         JPanel editorPanel = new JPanel();
-        tabbedPane.addTab("Editor", editorPanel);
+        mainTabbedPane.addTab("Editor", editorPanel);
         JPanel previewPanel = new JPanel();
-        tabbedPane.addTab("Preview", previewPanel);
+        mainTabbedPane.addTab("Preview", previewPanel);
+
+        // Create bottom tabbed pane
+        JTabbedPane bottomTabbedPane = new JTabbedPane();
+        bottomTabbedPane.setBorder(BorderFactory.createLineBorder(borderColor));
+
+        // Add tabs
+        JPanel problemPanel = new JPanel();
+        bottomTabbedPane.addTab("Problems", problemPanel);
+        JPanel outputPanel = new JPanel();
+        bottomTabbedPane.addTab("Output", outputPanel);
+
+        // Create a SplitPane to divide main parta nd bottom panel
+        JSplitPane vSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, mainTabbedPane, bottomTabbedPane);
+        vSplitPane.setDividerLocation(getHeight() - bottomVSPlitPanelHeight);
+        vSplitPane.setResizeWeight(0);
+        // Divider event listener
+        BasicSplitPaneUI vSPlitPaneUi = (BasicSplitPaneUI) vSplitPane.getUI();
+        vSPlitPaneUi.getDivider().addMouseListener(new MouseListener() {
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                isVSplitPanelDividerDragged = true;
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                isVSplitPanelDividerDragged = false;
+            }
+
+        });
+        // Get bottom height when value is changed by dragging divider
+        vSplitPane.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY, new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if (isVSplitPanelDividerDragged) {
+                    int newValue = (int) evt.getNewValue();
+                    bottomVSPlitPanelHeight = (newValue - frame.getHeight()) * -1;
+                }
+            }
+        });
+
+        // Listener to change vSplitPanel divider position on window resize
+        addComponentListener(new ComponentListener() {
+
+            @Override
+            public void componentResized(ComponentEvent e) {
+                vSplitPane.setDividerLocation(getHeight() - bottomVSPlitPanelHeight);
+            }
+
+            @Override
+            public void componentHidden(ComponentEvent e) {
+            }
+
+            @Override
+            public void componentMoved(ComponentEvent e) {
+            }
+
+            @Override
+            public void componentShown(ComponentEvent e) {
+            }
+
+        });
 
         // Create a SplitPane to divide the left panel and the tabbed pane
-        JSplitPane hSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, lPanel, tabbedPane);
-        hSplitPane.setOneTouchExpandable(true); // Allows full hiding and showing of the left panel
-        // TODO auto location
-        hSplitPane.setDividerLocation(200); // Initial width of the left panel
+        JSplitPane hSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, lPanel, vSplitPane);
+        hSplitPane.setDividerLocation(leftHSplitPanelDividerWidth); // Initial width of the left panel
         hSplitPane.setResizeWeight(0); // Left panel resizes while the right panel remains the same
+        // Get left width when value is changed by dragging divider
+        hSplitPane.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY, new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                leftHSplitPanelDividerWidth = (int) evt.getNewValue();
+                System.out.println(leftHSplitPanelDividerWidth);
+            }
+        });
 
         // Add the main panel to the window
         add(hSplitPane, BorderLayout.CENTER);
