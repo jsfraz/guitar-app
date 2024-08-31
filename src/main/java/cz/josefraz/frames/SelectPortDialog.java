@@ -26,6 +26,9 @@ public class SelectPortDialog extends JFrame {
         JPanel contentPane = new JPanel();
         contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
 
+        // Vertical space
+        contentPane.add(Box.createVerticalStrut(10));
+
         // Port combo box
         JPanel portPanel = new JPanel();
         portPanel.setLayout(new BoxLayout(portPanel, BoxLayout.X_AXIS));
@@ -34,7 +37,12 @@ public class SelectPortDialog extends JFrame {
         SerialPort[] serialPorts = SerialPort.getCommPorts();
         DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>();
         for (SerialPort port : serialPorts) {
-            model.addElement(port.getDescriptivePortName());
+            // Port path for Linux, friendly name for other
+            if (System.getProperty("os.name").startsWith("Linux")) {
+                model.addElement(port.getSystemPortPath());
+            } else {
+                model.addElement(port.getDescriptivePortName());
+            }
         }
         JComboBox<String> serialPortComboBox = new JComboBox<String>(model);
         serialPortComboBox.setPreferredSize(new Dimension(180, 30));
@@ -48,9 +56,17 @@ public class SelectPortDialog extends JFrame {
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
         JButton okButton = new JButton("OK");
         okButton.addActionListener(e -> {
-            Optional<SerialPort> port = Arrays.stream(serialPorts)
-                    .filter(p -> p.getDescriptivePortName().equals((String) serialPortComboBox.getSelectedItem()))
-                    .findFirst();
+            Optional<SerialPort> port;
+            // Port path for Linux, friendly name for other
+            if (System.getProperty("os.name").startsWith("Linux")) {
+                port = Arrays.stream(serialPorts)
+                .filter(p -> p.getSystemPortPath().equals((String) serialPortComboBox.getSelectedItem()))
+                .findFirst();
+            } else {
+                port = Arrays.stream(serialPorts)
+                .filter(p -> p.getDescriptivePortName().equals((String) serialPortComboBox.getSelectedItem()))
+                .findFirst();
+            }
             if (port.isPresent()) {
                 mainWindow.openSerialPort(port.get());
             } else {
@@ -94,7 +110,7 @@ public class SelectPortDialog extends JFrame {
         });
 
         setContentPane(contentPane);
-        setSize(300, 110);
+        setSize(310, 110);
         setResizable(false);
         setLocationRelativeTo(mainWindow);
         setVisible(true);
