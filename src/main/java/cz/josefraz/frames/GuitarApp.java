@@ -328,7 +328,12 @@ public class GuitarApp extends JFrame {
             this.connectDeviceItem.setEnabled(false);
             this.disconnectDeviceItem.setEnabled(true);
             this.commandMenu.setEnabled(true);
-            System.out.println(String.format("Opened serial port %s", Singleton.GetInstance().getSerialPort().getDescriptivePortName()));
+            // Port path for Linux, friendly name for other
+            if (System.getProperty("os.name").startsWith("Linux")) {
+                System.out.println(String.format("Opened serial port %s", Singleton.GetInstance().getSerialPort().getSystemPortPath()));
+            } else {
+                System.out.println(String.format("Opened serial port %s", Singleton.GetInstance().getSerialPort().getDescriptivePortName()));
+            }
 
             // Change status panel
             statusPanel.setBackground(new Color(76, 135, 200));
