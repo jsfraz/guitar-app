@@ -11,8 +11,7 @@ public class Main {
 
         // Singleton
         Singleton.GetInstance();
-
-        // TODO auto theme
+        
         FlatDarkLaf.setup();
         System.out.println("Dark theme set");
 

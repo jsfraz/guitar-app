@@ -43,10 +43,8 @@ import cz.josefraz.utils.Guitar;
 import cz.josefraz.utils.Singleton;
 
 public class GuitarApp extends JFrame {
-    // TODO auto location
     // Width of left part og SplitPanel
     private int leftHSplitPanelDividerWidth = 200;
-    // TODO auto location
     // Height of bottom part of v SplitPanel
     private int bottomVSplitPanelHeight = 220;
     // For checking if vSPlitPanel divider is being dragged
@@ -190,7 +188,6 @@ public class GuitarApp extends JFrame {
         mainTabbedPane.addTab("Editor", editorPanel);
         JPanel previewPanel = new JPanel();
         mainTabbedPane.addTab("Preview", previewPanel);
-        // TODO auto select tab
 
         // Create bottom tabbed pane
         JTabbedPane bottomTabbedPane = new JTabbedPane();
@@ -207,7 +204,6 @@ public class GuitarApp extends JFrame {
         programLogTextArea = new JTextArea();
         programLogTextArea.setEditable(false);
         bottomTabbedPane.addTab("Program logs", new JScrollPane(programLogTextArea));
-        // TODO auto select tab
 
         // Create a SplitPane to divide main parta nd bottom panel
         JSplitPane vSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, mainTabbedPane, bottomTabbedPane);

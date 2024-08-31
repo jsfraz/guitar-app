@@ -110,7 +110,7 @@ public class SelectPortDialog extends JFrame {
         });
 
         setContentPane(contentPane);
-        setSize(310, 110);
+        setSize(300, 120);
         setResizable(false);
         setLocationRelativeTo(mainWindow);
         setVisible(true);
