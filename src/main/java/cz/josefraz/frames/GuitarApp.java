@@ -148,6 +148,7 @@ public class GuitarApp extends JFrame {
         JMenu outputMenu = new JMenu("Output");
         JMenuItem deviceOutputClearItem = new JMenuItem("Clear device output");
         deviceOutputClearItem.addActionListener(e -> {
+            System.out.println("Cleared device output log");
             deviceOutputTextArea.setText(null);
         });
         outputMenu.add(deviceOutputClearItem);
@@ -162,12 +163,14 @@ public class GuitarApp extends JFrame {
         JMenuItem helloCommandItem = new JMenuItem("Hello");
         helloCommandItem.addActionListener(e -> {
             // Send HELLO command
+            System.out.println("Sent HELLO command");
             Guitar.command(Command.HELLO);
         });
         commandMenu.add(helloCommandItem);
         JMenuItem systemInfoCommandItem = new JMenuItem("System info");
         systemInfoCommandItem.addActionListener(e -> {
             // Send HELLO command
+            System.out.println("Sent SYSTEMINFO command");
             Guitar.command(Command.SYSTEMINFO);
         });
         commandMenu.add(systemInfoCommandItem);
